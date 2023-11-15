@@ -1,12 +1,15 @@
 #!/home/bandit/stock_updates/venv/bin/python3
 import requests
 import os
+import datetime
+import pytz
 import yfinance as yf
 
 webhook_url = os.getenv("WEBHOOK_URL")
 
 STOCK_NAMES = ["SPY", "QQQ", "DIS", "PDD", "UBER"]
-COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney", "Pinduoduo", "UBER"]
+COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney", "Pinduoduo", "Uber"]
+EXCLUDED_PUBLISHERS = ["Benzinga", "Motley Fool", "TheStreet.com", "Business Insider"]
 
 DAILY_PERCENT_THRESHOLD = 2
 LOW_52_WEEK_PERCENT_THRESHOLD = 3
@@ -40,6 +43,8 @@ def get_52_wk_low(instrument):
 
 def get_top_3_news(ticker):
     stock_news = yf.Ticker(ticker).news
+
+    filter_news = [news for news in stock_news if news['publisher'] not in EXCLUDED_PUBLISHERS]
     
     return stock_news[:3] 
 
@@ -55,7 +60,7 @@ def send_daily_updates(instrument, curr_px, prev_clse):
         
         three_articles = get_top_3_news(instrument)
 
-        formatted_articles = [f"Headline: {article['title']}. \nBrief: {article['link']}" for article in three_articles]
+        formatted_articles = [f"Headline: {article['title']}. \nPublisher: {article['publisher']}\nBrief: {article['link']}" for article in three_articles]
         # print(formatted_articles)
 
         up_down = ''
@@ -73,7 +78,7 @@ def send_daily_updates(instrument, curr_px, prev_clse):
                     "username": "Money Bot",
                     "embeds": [
                         {
-                            "title": f"Price Alert: {instrument}: {up_down} {round(percentage_change, 2)}",
+                            "title": f"Price Alert: {instrument}: {up_down} {round(percentage_change, 2)}%",
                             "description": f"{article}",
                             "color": up_down_color
                             }
@@ -104,7 +109,7 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
                 "embeds": [
                     {
                         "title": f"{instrument} Alert: ",
-                        "description": f"Current Price {round(curr_px, 2)} is within {round(percentage_change, 2)} of 52 Week low of {round(low_52_wk, 2)}",
+                        "description": f"Current Price ${round(curr_px, 2)} is within {round(percentage_change, 2)}% of 52 Week low of ${round(low_52_wk, 2)}",
                         "color": 5832883
                         }
                     ]
@@ -120,6 +125,11 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
             print(f"Failed to send message: {response.status_code}, {response.text}")
 
 
+def get_sp_names(filename):
+    with open(filename, 'r') as file:
+        name_list = file.read().splitlines()
+        return name_list
+
 
 if __name__ == '__main__':
     for (i, instrument) in enumerate(STOCK_NAMES):
@@ -132,5 +142,19 @@ if __name__ == '__main__':
         # print(f"52 Week Low: {low_52_wk}")
 
         send_daily_updates(instrument, current_px, previous_close)
-        send_52_week_lows(instrument, current_px, low_52_wk)
+
+    target_time = datetime.time(21, 30, 0)
+
+    eastern_timezone = pytz.timezone('US/Eastern')
+    current_time = datetime.datetime.now(eastern_timezone).time()
+
+    # Only check 52 week lows after the close
+    if current_time >= target_time:
+        sp_500_names = get_sp_names('names.txt')
+        for instrument in sp_500_names:
+            current_px = get_current_price(instrument)
+            low_52_wk = get_52_wk_low(instrument)
+
+            if current_px is not None and low_52_wk is not None:
+                send_52_week_lows(instrument, current_px, low_52_wk)
 
