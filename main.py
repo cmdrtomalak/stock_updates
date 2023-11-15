@@ -5,8 +5,8 @@ import yfinance as yf
 
 webhook_url = os.getenv("WEBHOOK_URL")
 
-STOCK_NAMES = ["SPY", "QQQ", "DIS"]
-COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney"]
+STOCK_NAMES = ["SPY", "QQQ", "DIS", "PDD", "UBER"]
+COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney", "Pinduoduo", "UBER"]
 
 DAILY_PERCENT_THRESHOLD = 2
 LOW_52_WEEK_PERCENT_THRESHOLD = 3
@@ -97,7 +97,6 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
     percentage_change = price_difference / low_52_wk * 100
     percentage_change_abs = price_difference_abs / low_52_wk * 100
 
-    percentage_change_abs = 2
     if percentage_change_abs < LOW_52_WEEK_PERCENT_THRESHOLD:
         payload = {
                 "content": "52 Week Low Alert",
@@ -132,6 +131,6 @@ if __name__ == '__main__':
         # print(f"Previous Price: {previous_close}")
         # print(f"52 Week Low: {low_52_wk}")
 
-        # send_daily_updates(instrument, current_px, previous_close)
+        send_daily_updates(instrument, current_px, previous_close)
         send_52_week_lows(instrument, current_px, low_52_wk)
 
