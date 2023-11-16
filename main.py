@@ -120,6 +120,7 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
         headers = {
                 "Content-Type": "application/json"
                 }
+        print(f"{instrument}")
         response = requests.post(webhook_url, json=payload, headers=headers)
 
         if response.status_code == 204:
@@ -163,6 +164,7 @@ def get_index_names(filename):
 
 
 if __name__ == '__main__':
+    # Send top news
     send_top_news()
 
     # Check for news relating to large price movements on a limited list
@@ -177,7 +179,7 @@ if __name__ == '__main__':
 
         send_daily_updates(instrument, current_px, previous_close)
 
-    target_time = datetime.time(21, 30, 0)
+    target_time = datetime.time(16, 30, 0)
 
     eastern_timezone = pytz.timezone('US/Eastern')
     current_time = datetime.datetime.now(eastern_timezone).time()
