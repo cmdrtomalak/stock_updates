@@ -77,7 +77,7 @@ def send_daily_updates(instrument, curr_px, prev_clse):
 
         for article in formatted_articles:
             payload = {
-                    "content": "Hourly Market Update",
+                    "content": "",
                     "username": "Money Bot",
                     "embeds": [
                         {
@@ -107,7 +107,7 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
 
     if percentage_change_abs < LOW_52_WEEK_PERCENT_THRESHOLD:
         payload = {
-                "content": "52 Week Low Alert",
+                "content": "",
                 "username": "Money Bot",
                 "embeds": [
                     {
@@ -133,7 +133,7 @@ def send_top_news():
 
     for story in news_stories:
         payload = {
-                "content": "News of the Day",
+                "content": "",
                 "username": "Money Bot",
                 "embeds": [
                     {
