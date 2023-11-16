@@ -5,6 +5,7 @@ import datetime
 import pytz
 import json
 import yfinance as yf
+import get_bloomberg
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +18,7 @@ EXCLUDED_PUBLISHERS = ["Benzinga", "Motley Fool", "TheStreet.com", "Business Ins
 
 DAILY_PERCENT_THRESHOLD = 2
 LOW_52_WEEK_PERCENT_THRESHOLD = 3
+
 
 def get_current_price(instrument):
     data = yf.Ticker(instrument).history(period="1d", interval="1m")
@@ -126,6 +128,33 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
             print(f"Failed to send message: {response.status_code}, {response.text}")
 
 
+def send_top_news():
+    news_stories = get_bloomberg.get_bloomberg_headlines()[:5]
+
+    for story in news_stories:
+        payload = {
+                "content": "News of the Day",
+                "username": "Money Bot",
+                "embeds": [
+                    {
+                        "title": f"{story[0]}",
+                        "description": f"{story[1]}",
+                        "color": 1738906
+                        }
+                    ]
+                }
+        headers = {
+                "Content-Type": "application/json"
+                }
+        response = requests.post(webhook_url, json=payload, headers=headers)
+
+        if response.status_code == 204:
+            print("Message sent successfully.")
+        else:
+            print(f"Failed to send message: {response.status_code}, {response.text}")
+
+
+
 def get_index_names(filename):
     with open(filename, 'r') as json_file:
         loaded_list = json.load(json_file)
@@ -134,6 +163,8 @@ def get_index_names(filename):
 
 
 if __name__ == '__main__':
+    send_top_news()
+
     # Check for news relating to large price movements on a limited list
     for (i, instrument) in enumerate(STOCK_NAMES):
         current_px = get_current_price(instrument)
