@@ -4,11 +4,14 @@ import os
 import datetime
 import pytz
 import yfinance as yf
+from dotenv import load_dotenv
+
+load_dotenv()
 
 webhook_url = os.getenv("WEBHOOK_URL")
 
-STOCK_NAMES = ["SPY", "QQQ", "DIS", "PDD", "UBER"]
-COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney", "Pinduoduo", "Uber"]
+STOCK_NAMES = ["SPY", "QQQ", "DIS", "PDD", "UBER", "SHOP"]
+COMPANY_NAMES = ["S&P 500", "Nasdaq", "Disney", "Pinduoduo", "Uber", "Shopify"]
 EXCLUDED_PUBLISHERS = ["Benzinga", "Motley Fool", "TheStreet.com", "Business Insider"]
 
 DAILY_PERCENT_THRESHOLD = 2
@@ -33,10 +36,10 @@ def get_previous_close(instrument):
 
 
 def get_52_wk_low(instrument):
-    data = yf.Ticker(instrument).history(period='1y', interval='1d')
+    data = yf.Ticker(instrument).info
 
     if not data.empty:
-        return data["Low"].min()
+        return data.get('fiftyTwoWeekLow')
     else:
         return None
        
@@ -132,6 +135,7 @@ def get_sp_names(filename):
 
 
 if __name__ == '__main__':
+    # Check for news relating to large price movements on a limited list
     for (i, instrument) in enumerate(STOCK_NAMES):
         current_px = get_current_price(instrument)
         previous_close = get_previous_close(instrument)
