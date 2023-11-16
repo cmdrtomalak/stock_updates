@@ -3,6 +3,7 @@ import requests
 import os
 import datetime
 import pytz
+import json
 import yfinance as yf
 from dotenv import load_dotenv
 
@@ -38,10 +39,7 @@ def get_previous_close(instrument):
 def get_52_wk_low(instrument):
     data = yf.Ticker(instrument).info
 
-    if not data.empty:
-        return data.get('fiftyTwoWeekLow')
-    else:
-        return None
+    return data.get('fiftyTwoWeekLow')
        
 
 def get_top_3_news(ticker):
@@ -128,10 +126,11 @@ def send_52_week_lows(instrument, curr_px, low_52_wk):
             print(f"Failed to send message: {response.status_code}, {response.text}")
 
 
-def get_sp_names(filename):
-    with open(filename, 'r') as file:
-        name_list = file.read().splitlines()
-        return name_list
+def get_index_names(filename):
+    with open(filename, 'r') as json_file:
+        loaded_list = json.load(json_file)
+
+    return loaded_list
 
 
 if __name__ == '__main__':
@@ -154,7 +153,7 @@ if __name__ == '__main__':
 
     # Only check 52 week lows after the close
     if current_time >= target_time:
-        sp_500_names = get_sp_names('names.txt')
+        sp_500_names = get_index_names('index_names.txt')
         for instrument in sp_500_names:
             current_px = get_current_price(instrument)
             low_52_wk = get_52_wk_low(instrument)
