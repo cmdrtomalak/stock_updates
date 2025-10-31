@@ -30,7 +30,7 @@ def get_current_price(instrument):
 
 
 def get_previous_close(instrument):
-    data = yf.Ticker(instrument).history(period="1wk", interval="1d")
+    data = yf.Ticker(instrument).history(period="5d", interval="1d")
     
     if not data.empty:
         return data['Close'].iloc[-2]
@@ -165,7 +165,7 @@ def get_index_names(filename):
 
 if __name__ == '__main__':
     # Send top news
-    send_top_news()
+    # send_top_news()
 
     # Check for news relating to large price movements on a limited list
     for (i, instrument) in enumerate(STOCK_NAMES):
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
         send_daily_updates(instrument, current_px, previous_close)
 
-    target_time = datetime.time(16, 30, 0)
+    target_time = datetime.time(16, 00, 0)
 
     eastern_timezone = pytz.timezone('US/Eastern')
     current_time = datetime.datetime.now(eastern_timezone).time()
